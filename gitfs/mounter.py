@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import socket
 import sys
 import argparse
 import resource
@@ -83,6 +84,13 @@ def prepare_components(args):
     # register all the routes
     routes = prepare_routes(args)
     router.register(routes)
+
+    # determine global git user/email if not set (default is to use hostname)
+    if ('@%s' % socket.gethostname()) in args.commiter_email and router.repo.default_signature:
+        sig = router.repo.default_signature
+        args.commiter_email = sig.email
+        args.commiter_name = sig.name
+        log.info('Using default signature: %s <%s>', sig.name, sig.email)
 
     # setup workers
     merge_worker = SyncWorker(args.commiter_name, args.commiter_email,
