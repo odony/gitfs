@@ -51,6 +51,7 @@ class Args(object):
             ("idle_fetch_timeout", (30 * 60, "float")),  # 30 min
             ("merge_timeout", (5, "float")),
             ("debug", (False, "bool")),
+            ("ssh_agent", (True, "bool")),
             ("log", ("syslog", "string")),
             ("log_level", ("warning", "string")),
             ("cache_size", (800, "int")),

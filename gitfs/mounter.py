@@ -18,10 +18,11 @@ import argparse
 import resource
 
 from fuse import FUSE
-from pygit2 import Keypair, UserPass
+from pygit2 import Keypair, KeypairFromAgent, UserPass
 from pygit2.remote import RemoteCallbacks
 
 from gitfs import __version__
+from gitfs.log import log
 from gitfs.utils import Args
 from gitfs.routes import prepare_routes
 from gitfs.router import Router
@@ -43,7 +44,11 @@ def parse_args(parser):
 def get_credentials(args):
     if args.password:
         credentials = UserPass(args.username, args.password)
+    elif args.ssh_agent:
+        log.info('Using SSH agent with remote user: %s', args.ssh_user)
+        credentials = KeypairFromAgent(args.ssh_user)
     else:
+        log.info('Using SSH user: %s, key: %s', args.ssh_user, args.ssh_key)
         credentials = Keypair(args.ssh_user, args.ssh_key + ".pub",
                               args.ssh_key, "")
     return RemoteCallbacks(credentials=credentials)
@@ -112,7 +117,8 @@ def start_fuse():
 
     try:
         merge_worker, fetch_worker, router = prepare_components(args)
-    except:
+    except Exception as e:
+        log.exception("General failure")
         return
 
     if args.max_open_files != -1:
